@@ -8,5 +8,6 @@ feh --bg-fill --randomize ~/backgrounds/*
 picom
 xsetroot -solid black
 xset s on
-xset s 600 1200
 xset s noblank
+xset -dpms
+xset s 300
