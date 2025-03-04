@@ -10,4 +10,4 @@ xsetroot -solid black
 xset s on
 xset s noblank
 xset -dpms
-xset s 600
+xset s 300
