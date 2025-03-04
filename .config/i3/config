@@ -17,6 +17,8 @@ gaps outer 6px
 set $mod Mod4
 # set $mod Mod3
 
+exec_always --no-startup-id xinput set-prop 'Xtrfy Xtrfy Wireless Receiver' 'libinput Accel Profile Enabled' 0 1 0
+exec_always --no-startup-id xinput set-prop 'Xtrfy Xtrfy Wireless Receiver' 'libinput Accel Speed' 0
 exec_always --no-startup-id ~/.config/i3/set-monitors.sh
 exec --no-startup-id xrdb -merge ~/.Xresources
 exec_always --no-startup-id setxkbmap -option ctrl:nocaps
