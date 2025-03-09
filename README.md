@@ -5,6 +5,8 @@
 `rofi`
 `starship`
 `zsh`
+`dunst`
+`thunar`
 ### For X11 (i3)
 `i3`
 `picom`
