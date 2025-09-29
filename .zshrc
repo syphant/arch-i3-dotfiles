@@ -12,7 +12,10 @@ setopt hist_save_no_dups
 setopt hist_ignore_dups
 setopt hist_find_no_dups
 
-alias ls="ls --color=always"
+alias ls="ls -alh --color=always"
+alias up="sudo apt update && sudo apt upgrade -y"
+alias in="sudo apt install"
+alias un="sudo apt remove --purge"
 
 source ~/.zsh/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
