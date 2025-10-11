@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Bulk Rename Utility
-Exec=wine "~/wine/bulkrenameutility/64-bit/Bulk Rename Utility.exe"
+Exec=bash -c 'wine "$HOME/wine/bulkrenameutility/64-bit/Bulk Rename Utility.exe"'
 Type=Application
 Icon=wine
 Categories=Utility;
