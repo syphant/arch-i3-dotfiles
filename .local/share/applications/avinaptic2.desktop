@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=avinaptic2
+Exec=wine ~/wine/avinaptic-win64-20231012/avinaptic2.exe
+Type=Application
+Icon=wine
+Categories=Utility;

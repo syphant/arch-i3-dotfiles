@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Bulk Rename Utility
+Exec=wine "~/wine/bulkrenameutility/64-bit/Bulk Rename Utility.exe"
+Type=Application
+Icon=wine
+Categories=Utility;
+Comment=
+Path=
+Terminal=false
+StartupNotify=false
