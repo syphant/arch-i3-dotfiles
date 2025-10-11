@@ -1,5 +1,5 @@
 # dotfiles
-## Requirements
+### Requirements for X11 (i3) Debian setup
 `fastfetch`
 `kitty`
 `rofi`
@@ -7,7 +7,6 @@
 `zsh`
 `dunst`
 `thunar`
-### For X11 (i3)
 `xorg`
 `xinit`
 `git`
@@ -31,6 +30,3 @@
 `pulseaudio`
 `pavucontrol`
 `network-manager-gnome`
-### For Wayland (hyprland)
-`hyprland`
-`waybar`
