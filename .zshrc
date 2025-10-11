@@ -16,6 +16,7 @@ alias ls="ls -alh --color=always"
 alias up="sudo apt update && sudo apt upgrade -y"
 alias in="sudo apt install"
 alias un="sudo apt remove --purge"
+alias ffprobe="ffprobe -hide_banner -show_streams -show_format"
 
 source ~/.zsh/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
@@ -27,5 +28,17 @@ zstyle ':autocomplete:*' accept-line yes
 
 bindkey '^M' accept-line
 bindkey -M menuselect '^M' .accept-line
+
+apt() { 
+  command nala "$@"
+}
+sudo() {
+  if [ "$1" = "apt" ]; then
+    shift
+    command sudo nala "$@"
+  else
+    command sudo "$@"
+  fi
+}
 
 eval "$(starship init zsh)"

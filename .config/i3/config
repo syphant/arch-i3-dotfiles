@@ -9,6 +9,7 @@
 #
 # Please see https://i3wm.org/docs/userguide.html for a complete reference!
 
+exec --no-startup-id lxpolkit &
 exec_always --no-startup-id xsetroot -cursor_name left_ptr
 
 for_window [class="^.*"] border pixel 2
