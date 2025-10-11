@@ -16,6 +16,9 @@
 `i3`
 `fonts-noto-color-emoji`
 `lxappearance`
+`sassc`
+`gtk2-engines-murrine`
+`gnome-themes-extra`
 `i3blocks`
 `psmisc`
 `picom`
