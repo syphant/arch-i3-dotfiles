@@ -14,6 +14,7 @@
 `wget`
 `nala`
 `i3`
+`lxpolkit`
 `fonts-noto-color-emoji`
 `lxappearance`
 `sassc`
