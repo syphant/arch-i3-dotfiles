@@ -13,6 +13,7 @@
 `git`
 `curl`
 `wget`
+`nala`
 `i3`
 `fonts-noto-color-emoji`
 `lxappearance`
