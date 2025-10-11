@@ -8,7 +8,14 @@
 `dunst`
 `thunar`
 ### For X11 (i3)
+`xorg`
+`xinit`
+`git`
+`curl`
+`wget`
 `i3`
+`i3blocks`
+`psmisc`
 `picom`
 `feh`
 `polybar`
