@@ -14,6 +14,7 @@
 `curl`
 `wget`
 `i3`
+`fonts-noto-color-emoji`
 `i3blocks`
 `psmisc`
 `picom`
