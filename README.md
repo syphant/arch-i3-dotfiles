@@ -15,6 +15,7 @@
 `wget`
 `i3`
 `fonts-noto-color-emoji`
+`lxappearance`
 `i3blocks`
 `psmisc`
 `picom`
