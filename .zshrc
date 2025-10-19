@@ -1,44 +1,91 @@
-setopt interactivecomments
-setopt APPEND_HISTORY
-setopt INC_APPEND_HISTORY
-setopt SHARE_HISTORY
+# ==============================
+#  Basic Zsh Configuration
+# ==============================
 
-HISTSIZE=5000
+# Use modern completion system
+autoload -Uz compinit
+compinit
+
+# History configuration
 HISTFILE=~/.zsh_history
-SAVEHIST=$HISTSIZE
-HISTDUP=erase
-setopt hist_ignore_all_dups
-setopt hist_save_no_dups
-setopt hist_ignore_dups
-setopt hist_find_no_dups
+HISTSIZE=10000
+SAVEHIST=10000
+setopt HIST_IGNORE_ALL_DUPS     # Ignore duplicates
+setopt HIST_IGNORE_SPACE        # Ignore commands starting with space
+setopt HIST_VERIFY              # Don’t execute immediately after !expansion
+setopt SHARE_HISTORY            # Share history across sessions
+
+# Enable useful options
+setopt AUTO_CD                  # `cd` by just typing directory name
+setopt CORRECT                  # Spell correction for commands
+setopt EXTENDED_GLOB            # Advanced globbing
+setopt NO_BEEP                  # Disable terminal beep
+setopt PROMPT_SUBST             # Allow variable expansion in prompt
+
+# ==============================
+#  Prompt (using colors)
+# ==============================
+
+autoload -U colors && colors
+PROMPT='%{$fg[cyan]%}%n%{$reset_color%}@%{$fg[magenta]%}%m %{$fg[green]%}%~%{$reset_color%} $(git_prompt_info)
+%{$fg[blue]%}❯%{$reset_color%} '
+
+# Optional: Git branch info (simple version)
+git_prompt_info() {
+  local branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+  [[ -n $branch ]] && echo "($branch)"
+}
+
+# ==============================
+#  Aliases
+# ==============================
 
 alias ls="ls -alh --color=always"
-alias up="sudo apt update && sudo apt upgrade -y"
-alias in="sudo apt install"
-alias un="sudo apt remove --purge"
-alias ffprobe="ffprobe -hide_banner -show_streams -show_format"
+alias up="eos-update --aur"
+alias in="yay -S"
+alias un="yay -Rns"
+alias grep='grep --color=auto'
 
-source ~/.zsh/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# ==============================
+#  Environment
+# ==============================
 
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-zstyle ':autocomplete:history-incremental-search-*' completer _history
-zstyle ':autocomplete:*' accept-line yes
+export EDITOR="nano"
+export VISUAL="code"
+export PAGER="less"
+export LESS="-R"
+export LANG="en_US.UTF-8"
 
-bindkey '^M' accept-line
-bindkey -M menuselect '^M' .accept-line
+# ==============================
+#  Zinit Plugin Manager
+# ==============================
 
-apt() { 
-  command nala "$@"
-}
-sudo() {
-  if [ "$1" = "apt" ]; then
-    shift
-    command sudo nala "$@"
-  else
-    command sudo "$@"
-  fi
-}
+if [[ ! -f ~/.zinit/bin/zinit.zsh ]]; then
+  mkdir -p ~/.zinit/bin
+  git clone https://github.com/zdharma-continuum/zinit.git ~/.zinit/bin
+fi
 
-eval "$(starship init zsh)"
+source ~/.zinit/bin/zinit.zsh
+
+# Example plugins
+zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-completions
+
+# ==============================
+#  Path
+# ==============================
+
+export PATH="$HOME/bin:/usr/local/bin:$PATH"
+
+# ==============================
+#  Terminal title (optional)
+# ==============================
+
+precmd() { print -Pn "\e]0;%n@%m: %~\a" }
+
+# ==============================
+#  Source local overrides
+# ==============================
+
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
