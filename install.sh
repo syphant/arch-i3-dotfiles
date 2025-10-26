@@ -472,8 +472,8 @@ if [ "$IS_LAPTOP" = true ]; then
     sudo systemctl enable tlp
     sudo systemctl start tlp
 
-    # Enable TLP sleep hooks
-    sudo systemctl enable tlp-sleep
+    # Enable NetworkManager-dispatcher for tlp-rdw (Radio Device Wizard)
+    sudo systemctl enable NetworkManager-dispatcher.service
 
     # Mask systemd-rfkill services (conflicts with TLP)
     sudo systemctl mask systemd-rfkill.service
@@ -487,14 +487,14 @@ if [ "$IS_LAPTOP" = true ]; then
     sudo tee /etc/systemd/system/powertop.service > /dev/null <<'EOF'
 [Unit]
 Description=Powertop tunings
-After=multi-user.target
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 ExecStart=/usr/bin/powertop --auto-tune
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target sleep.target
 EOF
 
     # Enable powertop auto-tune
