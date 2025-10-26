@@ -241,7 +241,7 @@ OFFICIAL_PACKAGES=(
     wireplumber
     pipewire-pulse
     ffmpeg
-    mkvtoolnix
+    mkvtoolnix-cli
     papirus-icon-theme
     sassc
     gtk-engine-murrine
