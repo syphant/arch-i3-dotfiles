@@ -84,6 +84,9 @@ exec_always --no-startup-id xinput set-prop 'DELL0817:00 044E:121F Touchpad' 'li
 # END OF MOUSE SETTINGS #
 #########################
 
+# Autostart picom compositor
+exec --no-startup-id picom
+
 # Autostart lxqt-policykit-agent for privilege escalation dialogs
 exec --no-startup-id /usr/bin/lxqt-policykit-agent &
 
@@ -118,11 +121,7 @@ exec_always --no-startup-id xset dpms 300 300 300  # Force DPMS to blank screen 
 exec --no-startup-id nm-applet
 
 # Kill any hanging polybar processes and autostart polybar
-exec_always killall polybar
 exec_always --no-startup-id ~/.config/i3/scripts/launch_polybar.sh
-
-# Autostart picom compositor
-exec --no-startup-id picom
 
 # Automatically set a random wallpaper (put your wallpapers in ~/backgrounds/)
 exec_always --no-startup-id feh --bg-fill --randomize ~/backgrounds/*
