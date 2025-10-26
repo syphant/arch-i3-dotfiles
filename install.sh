@@ -96,6 +96,60 @@ esac
 echo ""
 
 #######################################
+# Choose GPU Type                     #
+#######################################
+
+echo -e "${YELLOW}Which GPU do you have?${NC}"
+echo "  1) Intel"
+echo "  2) AMD"
+echo "  3) NVIDIA"
+echo ""
+read -p "Enter your choice (1, 2, or 3): " GPU_CHOICE
+
+case $GPU_CHOICE in
+    1)
+        GPU_TYPE="intel"
+        GPU_PACKAGES=("mesa" "vulkan-intel" "intel-media-driver")
+        print_step "Will install Intel GPU drivers"
+        ;;
+    2)
+        GPU_TYPE="amd"
+        GPU_PACKAGES=("mesa" "vulkan-radeon" "libva-mesa-driver" "mesa-vdpau")
+        print_step "Will install AMD GPU drivers"
+        ;;
+    3)
+        GPU_TYPE="nvidia"
+        echo ""
+        echo -e "${YELLOW}Which NVIDIA driver version?${NC}"
+        echo "  1) Legacy (nvidia) - For GTX 10 series or older"
+        echo "  2) Open (nvidia-open) - For GTX 16 series / RTX 20 series or newer"
+        echo ""
+        read -p "Enter your choice (1 or 2): " NVIDIA_DRIVER_CHOICE
+        
+        case $NVIDIA_DRIVER_CHOICE in
+            1)
+                GPU_PACKAGES=("nvidia" "nvidia-utils" "nvidia-settings")
+                print_step "Will install NVIDIA proprietary drivers (legacy)"
+                ;;
+            2)
+                GPU_PACKAGES=("nvidia-open" "nvidia-utils" "nvidia-settings")
+                print_step "Will install NVIDIA open kernel module drivers"
+                ;;
+            *)
+                print_error "Invalid choice. Please run the script again and select 1 or 2."
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        print_error "Invalid choice. Please run the script again and select 1, 2, or 3."
+        exit 1
+        ;;
+esac
+
+echo ""
+
+#######################################
 # Copy dotfiles to home directory     #
 #######################################
 
@@ -232,6 +286,7 @@ OFFICIAL_PACKAGES=(
     brightnessctl
     kitty
     firefox
+    btop
     lxqt-policykit
     networkmanager
     network-manager-applet
@@ -265,6 +320,9 @@ if [ "$IS_LAPTOP" = true ]; then
         thermald
     )
 fi
+
+# Add GPU-specific packages
+OFFICIAL_PACKAGES+=("${GPU_PACKAGES[@]}")
 
 AUR_PACKAGES=(
     ttf-gohu-nerd
@@ -596,8 +654,8 @@ print_step "Colloid GTK theme installed!"
 
 print_step "Installing Colloid KDE/Kvantum theme..."
 
-# Install kvantum first
-yay -S --needed --noconfirm kvantum qt5ct qt6ct
+# Install kvantum and qt configuration tools
+yay -S --needed --noconfirm kvantum kvantum-qt5 qt5ct qt6ct
 
 cd /tmp
 rm -rf Colloid-kde
@@ -650,10 +708,10 @@ cp "$HOME_DIR/.config/gtk-3.0/settings.ini" "$HOME_DIR/.config/gtk-4.0/settings.
 tee "$HOME_DIR/.config/qt5ct/qt5ct.conf" > /dev/null <<'EOF'
 [Appearance]
 color_scheme_path=/usr/share/qt5ct/colors/darker.conf
-custom_palette=false
+custom_palette=true
 icon_theme=Papirus-Dark
 standard_dialogs=default
-style=Fusion
+style=kvantum-dark
 
 [Fonts]
 fixed="Monospace,10,-1,5,50,0,0,0,0,0"
@@ -673,6 +731,9 @@ stylesheets=@Invalid()
 toolbutton_style=4
 underline_shortcut=1
 wheel_scroll_lines=3
+
+[PaletteEditor]
+geometry=@ByteArray()
 
 [SettingsWindow]
 geometry=@ByteArray()
@@ -682,10 +743,10 @@ EOF
 tee "$HOME_DIR/.config/qt6ct/qt6ct.conf" > /dev/null <<'EOF'
 [Appearance]
 color_scheme_path=/usr/share/qt6ct/colors/darker.conf
-custom_palette=false
+custom_palette=true
 icon_theme=Papirus-Dark
 standard_dialogs=default
-style=Fusion
+style=kvantum-dark
 
 [Fonts]
 fixed="Monospace,10,-1,5,50,0,0,0,0,0"
@@ -705,6 +766,9 @@ stylesheets=@Invalid()
 toolbutton_style=4
 underline_shortcut=1
 wheel_scroll_lines=3
+
+[PaletteEditor]
+geometry=@ByteArray()
 
 [SettingsWindow]
 geometry=@ByteArray()
@@ -763,6 +827,7 @@ echo ""
 echo -e "${BLUE}Installed features:${NC}"
 echo "✓ NetworkManager for network management"
 echo "✓ Bluetooth support (blueman applet)"
+echo "✓ ${GPU_TYPE^^} GPU drivers installed"
 
 if [ "$IS_LAPTOP" = true ]; then
     echo "✓ TLP for battery optimization"
