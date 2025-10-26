@@ -41,7 +41,7 @@ git_prompt_info() {
 # ==============================
 
 alias ls="ls -alh --color=always"
-alias up="eos-update --aur"
+alias up="yay -Syu"
 alias in="yay -S"
 alias un="yay -Rns"
 alias grep='grep --color=auto'
@@ -50,7 +50,7 @@ alias grep='grep --color=auto'
 #  Environment
 # ==============================
 
-export EDITOR="nano"
+export EDITOR="code"
 export VISUAL="code"
 export PAGER="less"
 export LESS="-R"
@@ -77,6 +77,18 @@ zinit light zsh-users/zsh-completions
 # ==============================
 
 export PATH="$HOME/bin:/usr/local/bin:$PATH"
+
+# ==============================
+#  Keybinds
+# ==============================
+
+# Fix Home/End
+bindkey "\e[H" beginning-of-line
+bindkey "\e[F" end-of-line
+
+# Fix Page Up/Down to scroll through history
+bindkey "\e[5~" history-beginning-search-backward
+bindkey "\e[6~" history-beginning-search-forward
 
 # ==============================
 #  Terminal title (optional)
