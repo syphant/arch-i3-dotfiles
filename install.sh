@@ -507,7 +507,7 @@ cd /tmp
 rm -rf Colloid-gtk-theme
 git clone https://github.com/vinceliuice/Colloid-gtk-theme.git
 cd Colloid-gtk-theme
-./install.sh -t all -c all --tweaks rimless black normal
+./install.sh -t all -s compact -l --tweaks rimless black normal
 cd "$SCRIPT_DIR"
 
 print_step "Colloid GTK theme installed!"
