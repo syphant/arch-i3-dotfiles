@@ -139,6 +139,7 @@ print_step "Installing dependencies..."
 # Base packages for all systems
 OFFICIAL_PACKAGES=(
     zsh
+    xorg
     i3-wm
     polybar
     xss-lock
@@ -441,19 +442,15 @@ CPU_BOOST_ON_BAT=0
 PLATFORM_PROFILE_ON_AC=performance
 PLATFORM_PROFILE_ON_BAT=low-power
 
-# Graphics
+# Graphics (safe for Intel/AMD/NVIDIA - will be ignored if not applicable)
 RADEON_DPM_PERF_LEVEL_ON_AC=auto
 RADEON_DPM_PERF_LEVEL_ON_BAT=low
 RADEON_DPM_STATE_ON_AC=performance
 RADEON_DPM_STATE_ON_BAT=battery
-RADEON_POWER_PROFILE_ON_AC=default
-RADEON_POWER_PROFILE_ON_BAT=low
 
-# Disk Settings
-DISK_DEVICES="nvme0n1 sda"
+# Disk Settings (will auto-detect available disks)
 DISK_APM_LEVEL_ON_AC="254 254"
 DISK_APM_LEVEL_ON_BAT="128 128"
-DISK_IOSCHED="mq-deadline mq-deadline"
 
 # PCI Express Power Management
 PCIE_ASPM_ON_AC=default
@@ -470,11 +467,10 @@ USB_BLACKLIST_PHONE=0
 USB_BLACKLIST_PRINTER=1
 USB_BLACKLIST_WWAN=0
 
-# Battery Care (for laptops with battery care support)
-START_CHARGE_THRESH_BAT0=75
-STOP_CHARGE_THRESH_BAT0=80
-START_CHARGE_THRESH_BAT1=75
-STOP_CHARGE_THRESH_BAT1=80
+# Battery Care (only works on ThinkPad, Dell, Asus with battery care support)
+# Uncomment and adjust if your laptop supports battery charge thresholds
+#START_CHARGE_THRESH_BAT0=75
+#STOP_CHARGE_THRESH_BAT0=80
 
 # Wi-Fi Power Saving
 WIFI_PWR_ON_AC=off
