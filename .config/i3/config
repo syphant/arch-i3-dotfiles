@@ -156,7 +156,7 @@ bindsym $mod+e exec thunar
 bindsym $mod+v exec code
 
 # start dmenu (a program launcher)
-bindsym $mod+space exec --no-startup-id dmenu_run -fn 'JetBrainsMono Nerd Font-11' -nb '#000000' -nf '#cdd6f4' -sb '#cdd6f4' -sf '#000000'
+bindsym $mod+space exec --no-startup-id dmenu_run -fn '0xProto Nerd Font Propo Font-11' -nf '#F8F8F2' -nb '#282A36' -sb '#6272A4' -sf '#F8F8F2'
 
 # Screenshot bindings using maim
 # Make sure the Screenshots directory exists in your home folder
@@ -278,22 +278,13 @@ bindsym $mod+r mode "resize"
 # ░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀░▀░▀▀▀ #
 ############################
 
-set $rosewater #f5e0dc
-set $mauve     #cba6f7
-set $red       #f38ba8
-set $peach     #fab387
-set $text      #cdd6f4
-set $overlay0  #6c7086
-set $surface0  #313244
-set $base      #1e1e2e
-set $mantle    #181825
+# class                 border  bground text    indicator child_border
+client.focused          #6272A4 #6272A4 #F8F8F2 #6272A4   #6272A4
+client.focused_inactive #44475A #44475A #F8F8F2 #44475A   #44475A
+client.unfocused        #282A36 #282A36 #BFBFBF #282A36   #282A36
+client.urgent           #44475A #FF5555 #F8F8F2 #FF5555   #FF5555
+client.placeholder      #282A36 #282A36 #F8F8F2 #282A36   #282A36
 
-# target                 title     bg     text     indicator  border
-client.focused           $mantle   $mauve $mantle  $rosewater $text
-client.focused_inactive  $overlay0 $base  $text    $rosewater $surface0
-client.unfocused         $overlay0 $base  $text    $rosewater $surface0
-client.urgent            $peach    $base  $peach   $overlay0  $red
-client.placeholder       $overlay0 $base  $text    $overlay0  $surface0
-client.background        $base
+client.background       #F8F8F2
 
 # ASCII art text headers generated using Pagga font on https://www.asciiart.eu/text-to-ascii-art

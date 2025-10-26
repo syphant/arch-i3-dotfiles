@@ -318,6 +318,7 @@ OFFICIAL_PACKAGES=(
     polybar
     xss-lock
     ttf-jetbrains-mono-nerd
+    inter-font
     nano-syntax-highlighting
     picom
     dmenu
