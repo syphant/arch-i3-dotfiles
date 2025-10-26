@@ -157,7 +157,6 @@ OFFICIAL_PACKAGES=(
     network-manager-applet
     wpa_supplicant
     thunar
-    xautolock
     pipewire
     wireplumber
     pipewire-pulse
@@ -189,6 +188,7 @@ AUR_PACKAGES=(
     ttf-0xproto-nerd
     i3lock-color
     visual-studio-code-bin
+    xautolock
 )
 
 # Install official packages
