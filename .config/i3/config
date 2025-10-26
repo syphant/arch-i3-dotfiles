@@ -87,14 +87,24 @@ exec_always --no-startup-id xinput set-prop 'DELL0817:00 044E:121F Touchpad' 'li
 # Autostart lxqt-policykit-agent for privilege escalation dialogs
 exec --no-startup-id /usr/bin/lxqt-policykit-agent &
 
+# Optionally use set_monitors.sh script to set up multi-monitor layout
+# exec_always --no-startup-id ~/.config/i3/scripts/set_monitors.sh
+
 # Lockscreen setup
+exec_always --no-startup-id xss-lock --transfer-sleep-lock -- ~/.config/i3/scripts/i3lock.sh
 exec_always --no-startup-id xset s 300 300  # lock after 300 seconds (5 minutes), no cycle delay
 exec_always --no-startup-id xset +dpms  # enable Display Power Management Signaling
 exec_always --no-startup-id xset dpms 300 300 300  # Force DPMS to blank screen at 300 seconds
-exec_always --no-startup-id xss-lock --transfer-sleep-lock -- ~/.config/i3/scripts/i3lock.sh
 
 # Auto-suspend after 5 minutes of inactivity
 # exec_always --no-startup-id killall xautolock; xautolock -time 5 -locker "systemctl suspend" -detectsleep
+
+# Alternatively, disable screen blanking/suspend and just set display to black after 5 minutes instead
+# exec_always --no-startup-id xsetroot -solid black
+# exec_always --no-startup-id xset s on
+# exec_always --no-startup-id xset s noblank
+# exec_always --no-startup-id xset -dpms
+# exec_always --no-startup-id xset s 300
 
 # Also for laptops, add the lines below to /etc/systemd/logind.conf for lid-close suspend
 # HandlePowerKey=suspend 
@@ -111,8 +121,11 @@ exec --no-startup-id nm-applet
 exec_always killall polybar
 exec_always --no-startup-id ~/.config/i3/scripts/launch_polybar.sh
 
-# Autostart picom
+# Autostart picom compositor
 exec --no-startup-id picom
+
+# Automatically set a random wallpaper (put your wallpapers in ~/backgrounds/)
+exec_always --no-startup-id feh --bg-fill --randomize ~/backgrounds/*
 
 ################################################
 # ░█░█░█▀▀░█░█░█▀▄░▀█▀░█▀█░█▀▄░▀█▀░█▀█░█▀▀░█▀▀ #
