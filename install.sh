@@ -204,6 +204,23 @@ else
     print_step "Using normal picom configuration (no changes needed)"
 fi
 
+# Enable auto-suspend for laptops
+if [ "$IS_LAPTOP" = true ]; then
+    print_step "Enabling auto-suspend after 5 minutes of inactivity (laptop mode)..."
+    
+    I3_CONFIG="$HOME_DIR/.config/i3/config"
+    
+    if [ -f "$I3_CONFIG" ]; then
+        # Uncomment the xautolock line
+        sed -i 's/^# exec_always --no-startup-id killall xautolock; xautolock -time 5 -locker "systemctl suspend" -detectsleep$/exec_always --no-startup-id killall xautolock; xautolock -time 5 -locker "systemctl suspend" -detectsleep/' "$I3_CONFIG"
+        echo "  Auto-suspend enabled in i3 config"
+    else
+        print_warning "i3 config not found at $I3_CONFIG"
+    fi
+else
+    print_step "Skipping auto-suspend setup (desktop mode)"
+fi
+
 #######################################
 # Make scripts executable             #
 #######################################
@@ -228,6 +245,31 @@ if [ -d "$LOCAL_BIN_DIR" ]; then
     echo "  Made all scripts in $LOCAL_BIN_DIR executable"
 else
     print_warning "Local bin directory not found: $LOCAL_BIN_DIR"
+fi
+
+#######################################
+# Configure sudo for wheel group      #
+#######################################
+
+print_step "Configuring passwordless sudo for wheel group..."
+
+# Check if the NOPASSWD line is already uncommented
+if sudo grep -q "^%wheel ALL=(ALL:ALL) NOPASSWD: ALL" /etc/sudoers; then
+    echo "  Passwordless sudo already enabled for wheel group"
+else
+    echo "  Enabling passwordless sudo for wheel group..."
+    # Use EDITOR=tee with visudo for safe editing
+    echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' | sudo EDITOR='tee -a' visudo -f /etc/sudoers.d/10-wheel-nopasswd
+    echo "  Passwordless sudo enabled"
+fi
+
+# Clean up any other files in sudoers.d that might conflict
+if [ -n "$(sudo ls -A /etc/sudoers.d/ 2>/dev/null | grep -v '^10-wheel-nopasswd$')" ]; then
+    echo "  Cleaning up conflicting sudoers.d files..."
+    sudo find /etc/sudoers.d/ -type f ! -name '10-wheel-nopasswd' -delete
+    echo "  Conflicting files removed"
+else
+    echo "  No conflicting sudoers.d files found"
 fi
 
 #######################################
@@ -298,6 +340,7 @@ OFFICIAL_PACKAGES=(
     ffmpeg
     mkvtoolnix-cli
     papirus-icon-theme
+    nwg-look
     sassc
     gtk-engine-murrine
     gtk-engines
@@ -470,7 +513,7 @@ Section "InputClass"
     Driver "libinput"
     MatchIsTouchpad "on"
     Option "Tapping" "on"
-    Option "TappingButtonMap" "lmr"
+    Option "TappingButtonMap" "lrm"
     Option "NaturalScrolling" "false"
     Option "AccelProfile" "adaptive"
     Option "AccelSpeed" "0"
