@@ -111,22 +111,7 @@ sudo pacman -S --needed --noconfirm git wget curl base-devel
 print_step "Essential tools installed!"
 
 #######################################
-# 3. Optimize mirror list             #
-#######################################
-
-print_step "Optimizing package mirror list with reflector..."
-
-# Backup current mirrorlist
-sudo cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-
-# Run reflector to get fastest mirrors
-print_warning "This may take a few minutes..."
-sudo reflector --latest 15 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-
-print_step "Mirror list optimized!"
-
-#######################################
-# 4. Install yay AUR helper           #
+# 3. Install yay AUR helper           #
 #######################################
 
 print_step "Installing yay AUR helper..."
@@ -146,7 +131,7 @@ else
 fi
 
 #######################################
-# 5. Install all dependencies         #
+# 4. Install all dependencies         #
 #######################################
 
 print_step "Installing dependencies..."
@@ -215,6 +200,21 @@ print_step "Installing AUR packages..."
 yay -S --needed --noconfirm "${AUR_PACKAGES[@]}"
 
 print_step "All dependencies installed successfully!"
+
+#######################################
+# 5. Optimize mirror list             #
+#######################################
+
+print_step "Optimizing package mirror list with reflector..."
+
+# Backup current mirrorlist
+sudo cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
+
+# Run reflector to get fastest mirrors
+print_warning "This may take a few minutes..."
+sudo reflector --latest 15 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+
+print_step "Mirror list optimized!"
 
 #######################################
 # 6. Switch from networkd to NM       #
