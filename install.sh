@@ -139,7 +139,8 @@ print_step "Installing dependencies..."
 # Base packages for all systems
 OFFICIAL_PACKAGES=(
     zsh
-    xorg
+    xorg-server
+    xorg-xinit
     i3-wm
     polybar
     xss-lock
@@ -150,6 +151,7 @@ OFFICIAL_PACKAGES=(
     rofi
     feh
     maim
+    xclip
     brightnessctl
     kitty
     firefox
@@ -708,11 +710,11 @@ if [ "$IS_LAPTOP" = true ]; then
 fi
 
 # Ask to reboot
-read -p "Would you like to reboot now? (y/N): " -n 1 -r
+read -p "Would you like to reboot now? (Y/n): " -n 1 -r
 echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+    print_step "Please reboot manually when ready"
+else
     print_step "Rebooting system..."
     sudo reboot
-else
-    print_step "Please reboot manually when ready"
 fi
