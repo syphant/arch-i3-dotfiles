@@ -1,5 +1,3 @@
-# Requires: i3 polybar xss-lock betterlockscreen ttf-jetbrains-mono-nerd ttf-gohu-nerd ttf-0xproto-nerd nano-syntax-highlighting picom dmenu rofi feh maim brightnessctl kitty firefox lxqt-policykit networkmanager network-manager-applet wpa_supplicant thunar xautolock pipewire wireplumber pipewire-pulse pactl visual-studio-code-bin
-
 ##########################################
 # ░█░█░█▀▀░█▀▀░█▀▄░░░█▀█░█▀▄░█▀▀░█▀▀░█▀▀ #
 # ░█░█░▀▀█░█▀▀░█▀▄░░░█▀▀░█▀▄░█▀▀░█▀▀░▀▀█ #
@@ -86,6 +84,9 @@ exec_always --no-startup-id xinput set-prop 'DELL0817:00 044E:121F Touchpad' 'li
 
 # Autostart picom compositor
 exec --no-startup-id picom
+
+# Autostart dunst notification daemon
+exec --no-startup-id dunst
 
 # Autostart lxqt-policykit-agent for privilege escalation dialogs
 exec --no-startup-id /usr/bin/lxqt-policykit-agent &

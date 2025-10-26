@@ -37,7 +37,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOME_DIR="$HOME"
 
 #######################################
-# 0. Ask if Desktop or Laptop         #
+# Ask if Desktop or Laptop            #
 #######################################
 
 echo ""
@@ -69,7 +69,34 @@ esac
 echo ""
 
 #######################################
-# 1. Copy dotfiles to home directory  #
+# Choose Picom Configuration          #
+#######################################
+
+echo -e "${YELLOW}Which picom configuration would you like to use?${NC}"
+echo "  1) Normal (includes animations, transparency, etc)"
+echo "  2) Alternative (lighter, no transparency or animations)"
+echo ""
+read -p "Enter your choice (1 or 2): " PICOM_CHOICE
+
+case $PICOM_CHOICE in
+    1)
+        PICOM_CONFIG="picom.conf"
+        print_step "Using normal picom configuration with animations and transparency"
+        ;;
+    2)
+        PICOM_CONFIG="picom-alt.conf"
+        print_step "Using alternative lightweight picom configuration"
+        ;;
+    *)
+        print_error "Invalid choice. Please run the script again and select 1 or 2."
+        exit 1
+        ;;
+esac
+
+echo ""
+
+#######################################
+# Copy dotfiles to home directory     #
 #######################################
 
 print_step "Copying dotfiles to home directory..."
@@ -100,8 +127,57 @@ done
 
 print_step "Dotfiles copied successfully!"
 
+# Handle picom configuration choice
+if [ "$PICOM_CONFIG" = "picom-alt.conf" ]; then
+    print_step "Applying alternative picom configuration..."
+    
+    PICOM_DIR="$HOME_DIR/.config/picom"
+    
+    # Backup the normal picom.conf
+    if [ -f "$PICOM_DIR/picom.conf" ]; then
+        mv "$PICOM_DIR/picom.conf" "$PICOM_DIR/picom.conf.backup"
+        echo "  Backed up normal picom.conf to picom.conf.backup"
+    fi
+    
+    # Copy picom-alt.conf as picom.conf
+    if [ -f "$PICOM_DIR/picom-alt.conf" ]; then
+        cp "$PICOM_DIR/picom-alt.conf" "$PICOM_DIR/picom.conf"
+        echo "  Applied alternative picom configuration"
+    else
+        print_error "picom-alt.conf not found in $PICOM_DIR"
+    fi
+else
+    print_step "Using normal picom configuration (no changes needed)"
+fi
+
 #######################################
-# 2. Install essential build tools    #
+# Make scripts executable             #
+#######################################
+
+print_step "Making scripts executable..."
+
+# Make i3 scripts executable
+I3_SCRIPTS_DIR="$HOME_DIR/.config/i3/scripts"
+
+if [ -d "$I3_SCRIPTS_DIR" ]; then
+    chmod +x "$I3_SCRIPTS_DIR"/*
+    echo "  Made all scripts in $I3_SCRIPTS_DIR executable"
+else
+    print_warning "i3 scripts directory not found: $I3_SCRIPTS_DIR"
+fi
+
+# Make local bin scripts executable
+LOCAL_BIN_DIR="$HOME_DIR/.local/bin"
+
+if [ -d "$LOCAL_BIN_DIR" ]; then
+    chmod +x "$LOCAL_BIN_DIR"/*
+    echo "  Made all scripts in $LOCAL_BIN_DIR executable"
+else
+    print_warning "Local bin directory not found: $LOCAL_BIN_DIR"
+fi
+
+#######################################
+# Install essential build tools       #
 #######################################
 
 print_step "Installing essential build tools..."
@@ -111,7 +187,7 @@ sudo pacman -S --needed --noconfirm git wget curl base-devel
 print_step "Essential tools installed!"
 
 #######################################
-# 3. Install yay AUR helper           #
+# Install yay AUR helper              #
 #######################################
 
 print_step "Installing yay AUR helper..."
@@ -131,7 +207,7 @@ else
 fi
 
 #######################################
-# 4. Install all dependencies         #
+# Install all dependencies            #
 #######################################
 
 print_step "Installing dependencies..."
@@ -141,6 +217,7 @@ OFFICIAL_PACKAGES=(
     zsh
     xorg-server
     xorg-xinit
+    xorg-xinput
     i3-wm
     polybar
     xss-lock
@@ -163,17 +240,20 @@ OFFICIAL_PACKAGES=(
     pipewire
     wireplumber
     pipewire-pulse
+    ffmpeg
+    mkvtoolnix
     papirus-icon-theme
     sassc
     gtk-engine-murrine
     gtk-engines
     gnome-themes-extra
     xdotool
-    xclip
     bluez
     bluez-utils
     blueman
     reflector
+    dunst
+    fastfetch
 )
 
 # Add laptop-specific packages
@@ -205,7 +285,7 @@ yay -S --needed --noconfirm "${AUR_PACKAGES[@]}"
 print_step "All dependencies installed successfully!"
 
 #######################################
-# 5. Optimize mirror list             #
+# Optimize mirror list                #
 #######################################
 
 print_step "Optimizing package mirror list with reflector..."
@@ -220,7 +300,7 @@ sudo reflector --latest 15 --protocol https --sort rate --save /etc/pacman.d/mir
 print_step "Mirror list optimized!"
 
 #######################################
-# 6. Switch from networkd to NM       #
+# Switch from networkd to NM          #
 #######################################
 
 print_step "Configuring NetworkManager..."
@@ -318,7 +398,7 @@ else
 fi
 
 #######################################
-# 7. Create touchpad configuration    #
+# Create touchpad configuration       #
 #######################################
 
 if [ "$IS_LAPTOP" = true ]; then
@@ -345,7 +425,7 @@ else
 fi
 
 #######################################
-# 8. Configure systemd-logind         #
+# Configure systemd-logind            #
 #######################################
 
 print_step "Configuring systemd-logind..."
@@ -367,7 +447,7 @@ EOF
 print_step "systemd-logind configured!"
 
 #######################################
-# 9. Configure Bluetooth              #
+# Configure Bluetooth                 #
 #######################################
 
 print_step "Configuring Bluetooth..."
@@ -382,7 +462,7 @@ sudo sed -i 's/#AutoEnable=false/AutoEnable=true/' /etc/bluetooth/main.conf 2>/d
 print_step "Bluetooth configured and enabled!"
 
 #######################################
-# 10. Configure power management      #
+# Configure power management          #
 #######################################
 
 if [ "$IS_LAPTOP" = true ]; then
@@ -496,7 +576,7 @@ else
 fi
 
 #######################################
-# 11. Install GTK themes              #
+# Install GTK themes                  #
 #######################################
 
 print_step "Installing Colloid GTK theme..."
@@ -511,7 +591,7 @@ cd "$SCRIPT_DIR"
 print_step "Colloid GTK theme installed!"
 
 #######################################
-# 12. Install KDE/Kvantum themes      #
+# Install KDE/Kvantum themes          #
 #######################################
 
 print_step "Installing Colloid KDE/Kvantum theme..."
@@ -531,7 +611,7 @@ cd "$SCRIPT_DIR"
 print_step "Colloid KDE/Kvantum theme installed!"
 
 #######################################
-# 13. Configure themes                #
+# Configure themes                    #
 #######################################
 
 print_step "Configuring themes..."
@@ -648,22 +728,14 @@ fi
 print_step "Themes configured successfully!"
 
 #######################################
-# 14. Create Screenshots directory    #
+# Create Screenshots directory        #
 #######################################
 
 print_step "Creating Screenshots directory..."
 mkdir -p "$HOME_DIR/Screenshots"
 
 #######################################
-# 15. Create backgrounds directory    #
-#######################################
-
-print_step "Creating backgrounds directory..."
-mkdir -p "$HOME_DIR/backgrounds"
-print_warning "Don't forget to add wallpapers to ~/backgrounds/ directory"
-
-#######################################
-# 16. Set zsh as default shell        #
+# Set zsh as default shell            #
 #######################################
 
 print_step "Setting zsh as default shell..."
