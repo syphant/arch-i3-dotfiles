@@ -774,15 +774,12 @@ rm -rf dracula-icons
 if git clone https://github.com/m4thewz/dracula-icons.git; then
     print_step "Successfully cloned Dracula icons repository"
     
-    # Check if the Dracula directory exists
-    if [ -d "dracula-icons/Dracula" ]; then
-        cp -r dracula-icons/Dracula "$HOME_DIR/.local/share/icons/"
+    # The repository root IS the icon theme - copy it as "Dracula"
+    if [ -d "dracula-icons" ]; then
+        cp -r dracula-icons "$HOME_DIR/.local/share/icons/Dracula"
         print_step "Dracula icon theme installed successfully!"
     else
-        print_error "Dracula directory not found in the cloned repository"
-        print_warning "Repository structure may have changed"
-        echo "Available directories:"
-        ls -la dracula-icons/ 2>/dev/null || echo "  Could not list contents"
+        print_error "Repository directory not found after cloning"
     fi
 else
     print_error "Failed to clone Dracula icons repository"
