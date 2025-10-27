@@ -45,13 +45,25 @@ alias up="yay -Syu"
 alias in="yay -S"
 alias un="yay -Rns"
 alias grep='grep --color=auto'
+alias ga='git add .'
+alias gc='git commit -m'
+alias gp='git push origin main'
+alias gpl='git pull'
+
+gacp() {
+  git add .
+  git commit -m "$*"
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  git push origin "$branch"
+}
+
 
 # ==============================
 #  Environment
 # ==============================
 
-export EDITOR="code"
-export VISUAL="code"
+export EDITOR="nano"
+export VISUAL="code --wait"
 export PAGER="less"
 export LESS="-R"
 export LANG="en_US.UTF-8"

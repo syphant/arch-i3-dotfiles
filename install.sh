@@ -109,12 +109,12 @@ read -p "Enter your choice (1, 2, or 3): " GPU_CHOICE
 case $GPU_CHOICE in
     1)
         GPU_TYPE="intel"
-        GPU_PACKAGES=("mesa" "vulkan-intel" "intel-media-driver")
+        GPU_PACKAGES=("mesa" "lib32-mesa" "vulkan-intel" "lib32-vulkan-intel" "intel-media-driver" "vulkan-icd-loader" "lib32-vulkan-icd-loader")
         print_step "Will install Intel GPU drivers"
         ;;
     2)
         GPU_TYPE="amd"
-        GPU_PACKAGES=("mesa" "vulkan-radeon" "libva-mesa-driver" "mesa-vdpau")
+        GPU_PACKAGES=("mesa" "lib32-mesa" "vulkan-radeon" "lib32-vulkan-radeon" "libva-mesa-driver" "mesa-vdpau" "vulkan-icd-loader" "lib32-vulkan-icd-loader")
         print_step "Will install AMD GPU drivers"
         ;;
     3)
@@ -128,11 +128,11 @@ case $GPU_CHOICE in
         
         case $NVIDIA_DRIVER_CHOICE in
             1)
-                GPU_PACKAGES=("nvidia" "nvidia-utils" "nvidia-settings")
+                GPU_PACKAGES=("nvidia-dkms" "nvidia-utils" "lib32-nvidia-utils" "nvidia-settings" "vulkan-icd-loader" "lib32-vulkan-icd-loader")
                 print_step "Will install NVIDIA proprietary drivers (legacy)"
                 ;;
             2)
-                GPU_PACKAGES=("nvidia-open" "nvidia-utils" "nvidia-settings")
+                GPU_PACKAGES=("nvidia-open-dkms" "nvidia-utils" "lib32-nvidia-utils" "nvidia-settings" "vulkan-icd-loader" "lib32-vulkan-icd-loader")
                 print_step "Will install NVIDIA open kernel module drivers"
                 ;;
             *)
@@ -148,6 +148,38 @@ case $GPU_CHOICE in
 esac
 
 echo ""
+
+#######################################
+# Verify NetworkManager               #
+#######################################
+
+print_step "Verifying NetworkManager setup..."
+
+# Check if NetworkManager is active
+if ! systemctl is-active --quiet NetworkManager; then
+    print_error "NetworkManager is not running!"
+    echo ""
+    echo -e "${YELLOW}This script requires NetworkManager to be installed and running.${NC}"
+    echo -e "${BLUE}Please:${NC}"
+    echo "  1. Install NetworkManager: sudo pacman -S networkmanager"
+    echo "  2. Enable it: sudo systemctl enable NetworkManager"
+    echo "  3. Start it: sudo systemctl start NetworkManager"
+    echo "  4. If using systemd-networkd, disable it first"
+    echo ""
+    exit 1
+fi
+
+# Check if systemd-networkd is active (conflict warning)
+if systemctl is-active --quiet systemd-networkd; then
+    print_warning "systemd-networkd is active and may conflict with NetworkManager!"
+    echo ""
+    echo -e "${YELLOW}It's recommended to disable systemd-networkd:${NC}"
+    echo "  sudo systemctl stop systemd-networkd"
+    echo "  sudo systemctl disable systemd-networkd"
+    echo ""
+fi
+
+print_step "NetworkManager is active"
 
 #######################################
 # Copy dotfiles to home directory     #
@@ -283,6 +315,21 @@ sudo pacman -S --needed --noconfirm git wget curl base-devel
 print_step "Essential tools installed!"
 
 #######################################
+# Optimize mirror list                #
+#######################################
+
+print_step "Optimizing package mirror list with reflector..."
+
+# Backup current mirrorlist
+sudo cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
+
+# Run reflector to get fastest mirrors
+print_warning "This may take a few minutes..."
+sudo reflector --latest 15 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+
+print_step "Mirror list optimized!"
+
+#######################################
 # Install yay AUR helper              #
 #######################################
 
@@ -303,6 +350,32 @@ else
 fi
 
 #######################################
+# Enable multilib repository          #
+#######################################
+
+print_step "Enabling multilib repository..."
+
+# Check if multilib is already enabled
+if grep -q "^\[multilib\]" /etc/pacman.conf; then
+    echo "  multilib repository is already enabled"
+else
+    # Backup pacman.conf
+    sudo cp /etc/pacman.conf /etc/pacman.conf.backup
+    
+    # Uncomment [multilib] and Include line
+    sudo sed -i '/^#\[multilib\]/,/^#Include = \/etc\/pacman.d\/mirrorlist/ {
+        s/^#\[multilib\]/[multilib]/
+        s/^#Include = \/etc\/pacman.d\/mirrorlist/Include = \/etc\/pacman.d\/mirrorlist/
+    }' /etc/pacman.conf
+    
+    echo "  multilib repository enabled"
+    
+    # Update package database
+    sudo pacman -Sy
+    echo "  Package database updated"
+fi
+
+#######################################
 # Install all dependencies            #
 #######################################
 
@@ -311,6 +384,7 @@ print_step "Installing dependencies..."
 # Base packages for all systems
 OFFICIAL_PACKAGES=(
     zsh
+    dkms
     xorg-server
     xorg-xinit
     xorg-xinput
@@ -329,6 +403,8 @@ OFFICIAL_PACKAGES=(
     brightnessctl
     kitty
     firefox
+    flatpak
+    xdg-desktop-portal
     btop
     lxqt-policykit
     networkmanager
@@ -353,6 +429,10 @@ OFFICIAL_PACKAGES=(
     reflector
     dunst
     fastfetch
+    wine-staging
+    wine-mono
+    winetricks
+    steam
 )
 
 # Add laptop-specific packages
@@ -367,6 +447,27 @@ fi
 
 # Add GPU-specific packages
 OFFICIAL_PACKAGES+=("${GPU_PACKAGES[@]}")
+
+# Detect and add appropriate kernel headers
+print_step "Detecting kernel version..."
+KERNEL_VERSION=$(uname -r)
+
+if [[ "$KERNEL_VERSION" == *"-lts"* ]]; then
+    KERNEL_HEADERS="linux-lts-headers"
+    echo "  Detected linux-lts kernel"
+elif [[ "$KERNEL_VERSION" == *"-zen"* ]]; then
+    KERNEL_HEADERS="linux-zen-headers"
+    echo "  Detected linux-zen kernel"
+elif [[ "$KERNEL_VERSION" == *"-hardened"* ]]; then
+    KERNEL_HEADERS="linux-hardened-headers"
+    echo "  Detected linux-hardened kernel"
+else
+    KERNEL_HEADERS="linux-headers"
+    echo "  Detected standard linux kernel"
+fi
+
+OFFICIAL_PACKAGES+=("$KERNEL_HEADERS")
+echo "  Will install: $KERNEL_HEADERS"
 
 AUR_PACKAGES=(
     ttf-gohu-nerd
@@ -385,119 +486,6 @@ print_step "Installing AUR packages..."
 yay -S --needed --noconfirm "${AUR_PACKAGES[@]}"
 
 print_step "All dependencies installed successfully!"
-
-#######################################
-# Optimize mirror list                #
-#######################################
-
-print_step "Optimizing package mirror list with reflector..."
-
-# Backup current mirrorlist
-sudo cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-
-# Run reflector to get fastest mirrors
-print_warning "This may take a few minutes..."
-sudo reflector --latest 15 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-
-print_step "Mirror list optimized!"
-
-#######################################
-# Switch from networkd to NM          #
-#######################################
-
-print_step "Configuring NetworkManager..."
-
-# Check if systemd-networkd is active
-if systemctl is-active --quiet systemd-networkd; then
-    print_warning "systemd-networkd is currently active. Switching to NetworkManager..."
-    
-    # Stop and disable systemd-networkd and systemd-resolved
-    sudo systemctl stop systemd-networkd
-    sudo systemctl disable systemd-networkd
-    
-    if systemctl is-active --quiet systemd-resolved; then
-        sudo systemctl stop systemd-resolved
-        sudo systemctl disable systemd-resolved
-    fi
-    
-    # Remove symlink if it exists and create new resolv.conf
-    sudo rm -f /etc/resolv.conf
-    
-    # Create a basic resolv.conf that NetworkManager will manage
-    sudo tee /etc/resolv.conf > /dev/null <<'EOF'
-# Generated by NetworkManager
-nameserver 1.1.1.1
-nameserver 8.8.8.8
-EOF
-    
-    print_step "Switched from systemd-networkd to NetworkManager"
-else
-    print_warning "systemd-networkd is not active, proceeding with NetworkManager setup..."
-fi
-
-# Enable and start NetworkManager
-print_step "Enabling and starting NetworkManager..."
-sudo systemctl enable NetworkManager
-sudo systemctl start NetworkManager
-
-# Ensure wpa_supplicant is enabled (for WiFi)
-sudo systemctl enable wpa_supplicant
-
-print_step "NetworkManager configured and started!"
-
-# Wait for network to come back up
-print_warning "Waiting for network connection to stabilize..."
-sleep 5
-
-# Check if we have internet connectivity
-if ping -c 1 1.1.1.1 &> /dev/null; then
-    print_step "Network connection verified!"
-else
-    print_warning "No network connection detected. You may need to configure your network connection."
-    echo ""
-    echo -e "${YELLOW}Opening nmtui to configure network connection...${NC}"
-    echo -e "${BLUE}Instructions:${NC}"
-    echo "  1. Select 'Activate a connection' or 'Edit a connection'"
-    echo "  2. Configure your WiFi or Ethernet connection"
-    echo "  3. Exit nmtui when done (ESC key)"
-    echo ""
-    read -p "Press ENTER to launch nmtui..." 
-    
-    # Launch nmtui for user to configure network
-    sudo nmtui
-    
-    # Wait a moment for connection to establish
-    print_warning "Waiting for connection to establish..."
-    sleep 5
-    
-    # Check connectivity again
-    if ping -c 1 1.1.1.1 &> /dev/null; then
-        print_step "Network connection verified!"
-    else
-        print_error "Still no network connection detected."
-        echo ""
-        echo -e "${YELLOW}You can try:${NC}"
-        echo "  1. Run 'sudo nmtui' to configure network manually"
-        echo "  2. Connect via ethernet cable"
-        echo "  3. Run this script again after connecting"
-        echo ""
-        read -p "Do you want to try configuring network again? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            sudo nmtui
-            sleep 5
-            if ping -c 1 1.1.1.1 &> /dev/null; then
-                print_step "Network connection verified!"
-            else
-                print_error "Network connection failed. Please configure network and run script again."
-                exit 1
-            fi
-        else
-            print_error "Cannot continue without network connection. Exiting."
-            exit 1
-        fi
-    fi
-fi
 
 #######################################
 # Create touchpad configuration       #
@@ -532,11 +520,15 @@ fi
 
 print_step "Configuring systemd-logind..."
 
-# Backup original logind.conf
-sudo cp /etc/systemd/logind.conf /etc/systemd/logind.conf.backup
-
-# Add power management settings
-sudo tee -a /etc/systemd/logind.conf > /dev/null <<'EOF'
+# Check if power management settings are already configured
+if ! grep -q "Power management settings added by install script" /etc/systemd/logind.conf; then
+    # Backup original logind.conf if not already backed up
+    if [ ! -f /etc/systemd/logind.conf.backup ]; then
+        sudo cp /etc/systemd/logind.conf /etc/systemd/logind.conf.backup
+    fi
+    
+    # Add power management settings
+    sudo tee -a /etc/systemd/logind.conf > /dev/null <<'EOF'
 
 # Power management settings added by install script
 HandlePowerKey=suspend
@@ -545,8 +537,11 @@ HandleLidSwitch=suspend
 HandleLidSwitchExternalPower=suspend
 HandleLidSwitchDocked=suspend
 EOF
-
-print_step "systemd-logind configured!"
+    
+    print_step "systemd-logind configured!"
+else
+    print_step "systemd-logind already configured, skipping..."
+fi
 
 #######################################
 # Configure Bluetooth                 #
@@ -678,59 +673,127 @@ else
 fi
 
 #######################################
-# Install GTK themes                  #
+# Install Proton-GE                   #
 #######################################
 
-print_step "Installing Colloid GTK theme..."
+print_step "Installing latest Proton-GE..."
 
+# Create compatibilitytools.d directory
+mkdir -p "$HOME_DIR/.steam/steam/compatibilitytools.d"
+
+# Get the latest Proton-GE release URL
+print_warning "Fetching latest Proton-GE release information..."
+PROTON_GE_URL=$(curl -s https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest | grep "browser_download_url.*tar.gz" | cut -d '"' -f 4)
+PROTON_GE_FILE=$(basename "$PROTON_GE_URL")
+
+if [ -z "$PROTON_GE_URL" ]; then
+    print_error "Failed to fetch Proton-GE download URL"
+else
+    echo "  Latest version: $PROTON_GE_FILE"
+    
+    # Download Proton-GE
+    cd /tmp
+    print_warning "Downloading Proton-GE (this may take a few minutes)..."
+    wget -q --show-progress "$PROTON_GE_URL"
+    
+    # Extract to compatibilitytools.d
+    print_step "Extracting Proton-GE..."
+    tar -xf "$PROTON_GE_FILE" -C "$HOME_DIR/.steam/steam/compatibilitytools.d/"
+    
+    # Clean up
+    rm "$PROTON_GE_FILE"
+    cd "$SCRIPT_DIR"
+    
+    print_step "Proton-GE installed successfully!"
+    echo "  You can select it in Steam under Settings > Compatibility"
+fi
+
+#######################################
+# Install Dracula GTK Theme           #
+#######################################
+
+print_step "Installing Dracula GTK theme..."
+
+# Create themes directory
+mkdir -p "$HOME_DIR/.themes"
+
+# Clone and install Dracula theme
 cd /tmp
-rm -rf Colloid-gtk-theme
-git clone https://github.com/vinceliuice/Colloid-gtk-theme.git
-cd Colloid-gtk-theme
-./install.sh -t all -s compact -l --tweaks rimless black normal
-cd "$SCRIPT_DIR"
+rm -rf gtk
+git clone https://github.com/dracula/gtk.git
 
-print_step "Colloid GTK theme installed!"
+if [ ! -d "gtk" ]; then
+    print_error "Failed to clone Dracula GTK theme repository"
+    cd "$SCRIPT_DIR"
+else
+    cp -r gtk "$HOME_DIR/.themes/Dracula"
+    print_step "Dracula GTK theme installed!"
+    
+    #######################################
+    # Install Dracula Qt/Kvantum Theme    #
+    #######################################
+    
+    print_step "Installing Dracula Qt/Kvantum theme..."
+    
+    # Install kvantum and qt configuration tools
+    yay -S --needed --noconfirm kvantum kvantum-qt5 qt5ct qt6ct
+    
+    # Create Kvantum themes directory
+    mkdir -p "$HOME_DIR/.config/Kvantum"
+    
+    # Copy Kvantum theme from the cloned gtk repo
+    if [ -d "gtk/kde/kvantum/Dracula" ]; then
+        cp -r gtk/kde/kvantum/Dracula "$HOME_DIR/.config/Kvantum/"
+        print_step "Dracula Kvantum theme installed!"
+    else
+        print_error "Dracula Kvantum theme not found in repository"
+    fi
+    
+    # Clean up
+    cd "$SCRIPT_DIR"
+    rm -rf /tmp/gtk
+fi
 
 #######################################
-# Install KDE/Kvantum themes          #
+# Install Dracula Icons               #
 #######################################
 
-print_step "Installing Colloid KDE/Kvantum theme..."
+print_step "Installing Dracula icon theme..."
 
-# Install kvantum and qt configuration tools
-yay -S --needed --noconfirm kvantum kvantum-qt5 qt5ct qt6ct
+# Create icons directory
+mkdir -p "$HOME_DIR/.local/share/icons"
 
+# Clone and install Dracula icons
 cd /tmp
-rm -rf Colloid-kde
-git clone https://github.com/vinceliuice/Colloid-kde.git
-cd Colloid-kde
-./install.sh
+rm -rf dracula-icons
+git clone https://github.com/m4thewz/dracula-icons.git
 
-# Install Kvantum themes
+if [ ! -d "dracula-icons/Dracula" ]; then
+    print_error "Failed to clone Dracula icons repository"
+else
+    cp -r dracula-icons/Dracula "$HOME_DIR/.local/share/icons/"
+    print_step "Dracula icon theme installed!"
+fi
+
 cd "$SCRIPT_DIR"
-
-print_step "Colloid KDE/Kvantum theme installed!"
+rm -rf /tmp/dracula-icons
 
 #######################################
-# Configure themes                    #
+# Configure GTK Theme                 #
 #######################################
 
-print_step "Configuring themes..."
+print_step "Configuring GTK theme..."
 
 # Create necessary directories
 mkdir -p "$HOME_DIR/.config/gtk-3.0"
 mkdir -p "$HOME_DIR/.config/gtk-4.0"
-mkdir -p "$HOME_DIR/.config/qt5ct"
-mkdir -p "$HOME_DIR/.config/qt6ct"
-mkdir -p "$HOME_DIR/.config/Kvantum"
 
 # Configure GTK3
 tee "$HOME_DIR/.config/gtk-3.0/settings.ini" > /dev/null <<'EOF'
 [Settings]
-gtk-theme-name=Colloid-Dark
-gtk-icon-theme-name=Papirus-Dark
-gtk-font-name=Sans 10
+gtk-theme-name=Dracula
+gtk-icon-theme-name=Dracula
+gtk-font-name=0xProto Nerd Font Propo 10
 gtk-cursor-theme-name=Adwaita
 gtk-cursor-theme-size=24
 gtk-toolbar-style=GTK_TOOLBAR_BOTH_HORIZ
@@ -746,20 +809,45 @@ gtk-xft-rgba=rgb
 EOF
 
 # Configure GTK4
-cp "$HOME_DIR/.config/gtk-3.0/settings.ini" "$HOME_DIR/.config/gtk-4.0/settings.ini"
+tee "$HOME_DIR/.config/gtk-4.0/settings.ini" > /dev/null <<'EOF'
+[Settings]
+gtk-theme-name=Dracula
+gtk-icon-theme-name=Dracula
+gtk-font-name=0xProto Nerd Font Propo 10
+gtk-cursor-theme-name=Adwaita
+gtk-cursor-theme-size=24
+gtk-enable-event-sounds=1
+gtk-enable-input-feedback-sounds=0
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle=hintslight
+gtk-xft-rgba=rgb
+EOF
+
+print_step "GTK theme configured!"
+
+#######################################
+# Configure Qt Theme                  #
+#######################################
+
+print_step "Configuring Qt theme..."
+
+# Create necessary directories
+mkdir -p "$HOME_DIR/.config/qt5ct"
+mkdir -p "$HOME_DIR/.config/qt6ct"
 
 # Configure Qt5ct
 tee "$HOME_DIR/.config/qt5ct/qt5ct.conf" > /dev/null <<'EOF'
 [Appearance]
-color_scheme_path=/usr/share/qt5ct/colors/darker.conf
-custom_palette=true
-icon_theme=Papirus-Dark
+color_scheme_path=
+custom_palette=false
+icon_theme=Dracula
 standard_dialogs=default
 style=kvantum-dark
 
 [Fonts]
-fixed="Monospace,10,-1,5,50,0,0,0,0,0"
-general="Sans Serif,10,-1,5,50,0,0,0,0,0"
+fixed="0xProto Nerd Font Propo,10,-1,5,50,0,0,0,0,0"
+general="0xProto Nerd Font Propo,10,-1,5,50,0,0,0,0,0"
 
 [Interface]
 activate_item_on_single_click=1
@@ -775,9 +863,6 @@ stylesheets=@Invalid()
 toolbutton_style=4
 underline_shortcut=1
 wheel_scroll_lines=3
-
-[PaletteEditor]
-geometry=@ByteArray()
 
 [SettingsWindow]
 geometry=@ByteArray()
@@ -786,15 +871,15 @@ EOF
 # Configure Qt6ct
 tee "$HOME_DIR/.config/qt6ct/qt6ct.conf" > /dev/null <<'EOF'
 [Appearance]
-color_scheme_path=/usr/share/qt6ct/colors/darker.conf
-custom_palette=true
-icon_theme=Papirus-Dark
+color_scheme_path=
+custom_palette=false
+icon_theme=Dracula
 standard_dialogs=default
 style=kvantum-dark
 
 [Fonts]
-fixed="Monospace,10,-1,5,50,0,0,0,0,0"
-general="Sans Serif,10,-1,5,50,0,0,0,0,0"
+fixed="0xProto Nerd Font Propo,10,-1,5,50,0,0,0,0,0"
+general="0xProto Nerd Font Propo,10,-1,5,50,0,0,0,0,0"
 
 [Interface]
 activate_item_on_single_click=1
@@ -811,9 +896,6 @@ toolbutton_style=4
 underline_shortcut=1
 wheel_scroll_lines=3
 
-[PaletteEditor]
-geometry=@ByteArray()
-
 [SettingsWindow]
 geometry=@ByteArray()
 EOF
@@ -821,10 +903,10 @@ EOF
 # Configure Kvantum theme
 tee "$HOME_DIR/.config/Kvantum/kvantum.kvconfig" > /dev/null <<'EOF'
 [General]
-theme=ColloidDark
+theme=Dracula
 EOF
 
-# Set environment variables
+# Set environment variables for Qt theme
 if ! grep -q "QT_QPA_PLATFORMTHEME" "$HOME_DIR/.profile" 2>/dev/null; then
     echo 'export QT_QPA_PLATFORMTHEME=qt5ct' >> "$HOME_DIR/.profile"
 fi
@@ -833,7 +915,7 @@ if ! grep -q "QT_QPA_PLATFORMTHEME" "$HOME_DIR/.zprofile" 2>/dev/null; then
     echo 'export QT_QPA_PLATFORMTHEME=qt5ct' >> "$HOME_DIR/.zprofile"
 fi
 
-print_step "Themes configured successfully!"
+print_step "Qt theme configured!"
 
 #######################################
 # Create Screenshots directory        #
