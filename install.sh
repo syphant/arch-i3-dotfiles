@@ -396,6 +396,7 @@ OFFICIAL_PACKAGES=(
     polybar
     xss-lock
     ttf-jetbrains-mono-nerd
+    otf-overpass-nerd
     inter-font
     nano-syntax-highlighting
     picom
@@ -805,7 +806,7 @@ tee "$HOME_DIR/.config/gtk-3.0/settings.ini" > /dev/null <<'EOF'
 [Settings]
 gtk-theme-name=Dracula
 gtk-icon-theme-name=Dracula
-gtk-font-name=0xProto Nerd Font Propo 10
+gtk-font-name=Overpass Nerd Font 11
 gtk-cursor-theme-name=Adwaita
 gtk-cursor-theme-size=24
 gtk-toolbar-style=GTK_TOOLBAR_BOTH_HORIZ
@@ -825,7 +826,7 @@ tee "$HOME_DIR/.config/gtk-4.0/settings.ini" > /dev/null <<'EOF'
 [Settings]
 gtk-theme-name=Dracula
 gtk-icon-theme-name=Dracula
-gtk-font-name=0xProto Nerd Font Propo 10
+gtk-font-name=Overpass Nerd Font 11
 gtk-cursor-theme-name=Adwaita
 gtk-cursor-theme-size=24
 gtk-enable-event-sounds=1
@@ -858,8 +859,8 @@ standard_dialogs=default
 style=kvantum-dark
 
 [Fonts]
-fixed="0xProto Nerd Font Propo,10,-1,5,50,0,0,0,0,0"
-general="0xProto Nerd Font Propo,10,-1,5,50,0,0,0,0,0"
+fixed="JetBrainsMono Nerd Font,11,-1,5,50,0,0,0,0,0"
+general="Overpass Nerd Font,10,-1,5,50,0,0,0,0,0"
 
 [Interface]
 activate_item_on_single_click=1
@@ -890,8 +891,8 @@ standard_dialogs=default
 style=kvantum-dark
 
 [Fonts]
-fixed="0xProto Nerd Font Propo,10,-1,5,50,0,0,0,0,0"
-general="0xProto Nerd Font Propo,10,-1,5,50,0,0,0,0,0"
+fixed="JetBrainsMono Nerd Font,11,-1,5,50,0,0,0,0,0"
+general="Overpass Nerd Font,11,-1,5,50,0,0,0,0,0"
 
 [Interface]
 activate_item_on_single_click=1

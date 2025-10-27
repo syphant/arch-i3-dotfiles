@@ -24,4 +24,4 @@ i3lock \
 --bshl-color=$RED            \
 --color=000000ff             \
 --indicator                  \
---font="0xProto Nerd Font Propo"
+--font="JetBrainsMono Nerd Font"

@@ -1,5 +1,3 @@
-/*Dracula theme based on the Purple official rofi theme*/
-
 configuration {
     show-icons:      true;
     display-drun:    "";
@@ -7,7 +5,7 @@ configuration {
 }
 
 * {
-    font: "0xProto Nerd Font Propo 10";
+    font: "Overpass Nerd Font 11";
     foreground: #f8f8f2;
     background-color: #282a36;
     active-background: #6272a4;

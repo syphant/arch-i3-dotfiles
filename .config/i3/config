@@ -10,6 +10,9 @@ set $mod Mod1
 # Set font
 font pango:0xProto Nerd Font Propo 10
 
+# Set default orientation to automatic (intelligent tiling based on window dimensions)
+default_orientation auto
+
 # Remove title bars and set border width
 for_window [class="^.*"] border pixel 2
 
@@ -153,10 +156,16 @@ bindsym $mod+t exec kitty
 bindsym $mod+e exec thunar
 
 # start IDE
-bindsym $mod+v exec code
+bindsym $mod+c exec code
 
 # start dmenu (a program launcher)
-bindsym $mod+space exec --no-startup-id dmenu_run -fn '0xProto Nerd Font Propo Font-11' -nf '#F8F8F2' -nb '#282A36' -sb '#6272A4' -sf '#F8F8F2'
+# bindsym $mod+space exec --no-startup-id dmenu_run -fn '0xProto Nerd Font Propo Font-11' -nf '#F8F8F2' -nb '#282A36' -sb '#bd93f9' -sf '#F8F8F2'
+
+# A more modern dmenu replacement is rofi:
+bindcode $mod+space exec "rofi -modi drun,run -show drun"
+# There also is i3-dmenu-desktop which only displays applications shipping a
+# .desktop file. It is a wrapper around dmenu, so you need that installed.
+# bindcode $mod+40 exec --no-startup-id i3-dmenu-desktop
 
 # Screenshot bindings using maim
 # Make sure the Screenshots directory exists in your home folder
@@ -171,12 +180,6 @@ bindsym $mod+x exec ~/.config/i3/scripts/i3lock.sh
 bindsym Ctrl+Print exec maim | xclip -selection clipboard -t image/png
 bindsym Ctrl+$mod+Print exec maim --window $(xdotool getactivewindow) | xclip -selection clipboard -t image/png
 bindsym Ctrl+Shift+Print exec maim --select | xclip -selection clipboard -t image/png
-
-# A more modern dmenu replacement is rofi:
-# bindcode $mod+40 exec "rofi -modi drun,run -show drun"
-# There also is i3-dmenu-desktop which only displays applications shipping a
-# .desktop file. It is a wrapper around dmenu, so you need that installed.
-# bindcode $mod+40 exec --no-startup-id i3-dmenu-desktop
 
 # kill focused window
 bindsym $mod+q kill
@@ -207,6 +210,12 @@ bindsym $mod+Shift+Right move right
 
 # enter fullscreen mode for the focused container
 bindsym $mod+F11 fullscreen toggle
+
+# split in horizontal orientation
+bindsym $mod+h split h
+
+# split in vertical orientation
+bindsym $mod+v split v
 
 # toggle tiling / floating
 bindsym $mod+f floating toggle
