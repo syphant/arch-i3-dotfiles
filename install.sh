@@ -767,18 +767,29 @@ print_step "Installing Dracula icon theme..."
 # Create icons directory
 mkdir -p "$HOME_DIR/.local/share/icons"
 
-# Clone and install Dracula icons
+# Clone Dracula icons
 cd /tmp
 rm -rf dracula-icons
-git clone https://github.com/m4thewz/dracula-icons.git
 
-if [ ! -d "dracula-icons/Dracula" ]; then
-    print_error "Failed to clone Dracula icons repository"
+if git clone https://github.com/m4thewz/dracula-icons.git; then
+    print_step "Successfully cloned Dracula icons repository"
+    
+    # Check if the Dracula directory exists
+    if [ -d "dracula-icons/Dracula" ]; then
+        cp -r dracula-icons/Dracula "$HOME_DIR/.local/share/icons/"
+        print_step "Dracula icon theme installed successfully!"
+    else
+        print_error "Dracula directory not found in the cloned repository"
+        print_warning "Repository structure may have changed"
+        echo "Available directories:"
+        ls -la dracula-icons/ 2>/dev/null || echo "  Could not list contents"
+    fi
 else
-    cp -r dracula-icons/Dracula "$HOME_DIR/.local/share/icons/"
-    print_step "Dracula icon theme installed!"
+    print_error "Failed to clone Dracula icons repository"
+    print_warning "This may be due to network issues or repository unavailability"
 fi
 
+# Cleanup
 cd "$SCRIPT_DIR"
 rm -rf /tmp/dracula-icons
 
