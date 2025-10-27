@@ -318,6 +318,10 @@ print_step "Essential tools installed!"
 # Optimize mirror list                #
 #######################################
 
+print_step "Installing reflector for mirror optimization..."
+
+sudo pacman -S --needed --noconfirm reflector
+
 print_step "Optimizing package mirror list with reflector..."
 
 # Backup current mirrorlist
